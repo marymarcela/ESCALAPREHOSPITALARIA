@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPSS — Escala de Ictus Prehospitalaria de Cincinnati</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F4F1EC;
+    --surface: #FDFCFA;
+    --surface2: #F0EDE6;
+    --border: #DDD9D0;
+    --border-strong: #C5C0B4;
+    --text: #1A1815;
+    --text-muted: #6B6760;
+    --text-faint: #9E9A93;
+    --accent: #C1121F;
+    --accent-soft: #FCEAE9;
+    --accent-border: #E8B4B3;
+    --blue: #1B4F8A;
+    --blue-soft: #E8F0FA;
+    --blue-border: #AABFE0;
+    --green: #1A6640;
+    --green-soft: #E8F5EE;
+    --green-border: #A3D4B8;
+    --amber: #8A5A0A;
+    --amber-soft: #FDF3E3;
+    --amber-border: #E0C48A;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+    --transition: 0.18s ease;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .header-left { flex: 1; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .badge-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .header-meta {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: 'DM Mono', monospace;
+    line-height: 1.6;
+    flex-shrink: 0;
+  }
+
+  /* ── Timer bar ── */
+  .timer-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow);
+  }
+  .timer-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .timer-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .timer-content { flex: 1; }
+  .timer-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; font-weight: 500; margin-bottom: 2px; }
+  .timer-time { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: .02em; }
+  .timer-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--surface2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .timer-btn:hover { background: var(--border); }
+  .timer-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Item cards ── */
+  .items { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: border-color var(--transition);
+  }
+  .item-card.selected { border-color: var(--accent-border); }
+
+  .item-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .item-letter {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: var(--transition);
+  }
+  .item-card.selected .item-letter {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
+  .item-info { flex: 1; }
+  .item-name { font-size: 15px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 1px; }
+  .item-desc { font-size: 12px; color: var(--text-muted); }
+  .item-status {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+  .item-card.selected .item-status {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
+
+  .item-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .item-options.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .option-btn {
+    background: var(--surface);
+    border: none;
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition);
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+  }
+  .option-btn:hover { background: var(--surface2); }
+  .option-btn.active {
+    background: var(--accent-soft);
+  }
+  .option-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+  .option-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .option-label svg {
+    width: 12px; height: 12px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .option-btn.active .option-label { color: var(--accent); }
+  .option-text { font-size: 13px; font-weight: 400; color: var(--text); line-height: 1.35; }
+  .option-hint { font-size: 11px; color: var(--text-faint); margin-top: 3px; line-height: 1.3; }
+
+  /* ── How to perform ── */
+  .how-to {
+    padding: 12px 18px;
+    background: var(--blue-soft);
+    border-top: 1px solid var(--blue-border);
+    display: none;
+  }
+  .how-to.open { display: block; }
+  .how-to-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition);
+  }
+  .how-to-toggle:hover { color: var(--text); }
+  .how-to-toggle svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+  .how-to-toggle.open svg { transform: rotate(180deg); }
+  .how-to-title { font-size: 12px; font-weight: 600; color: var(--blue); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .how-to ol { padding-left: 16px; }
+  .how-to li { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; line-height: 1.4; }
+  .how-to li strong { color: var(--text); font-weight: 500; }
+
+  /* ── Result ── */
+  .result-card {
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    transition: border-color var(--transition);
+  }
+  .result-card.positive { border-color: var(--accent-border); }
+  .result-card.negative { border-color: var(--green-border); }
+  .result-card.pending { border-color: var(--amber-border); }
+
+  .result-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 20px 16px;
+  }
+  .result-score-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .result-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1;
+    transition: color var(--transition);
+  }
+  .result-score.positive { color: var(--accent); }
+  .result-score.negative { color: var(--green); }
+  .result-score.pending { color: var(--amber); }
+  .result-score-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .result-divider { width: 1px; height: 56px; background: var(--border); flex-shrink: 0; }
+  .result-info { flex: 1; }
+  .result-verdict {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin-bottom: 4px;
+    transition: color var(--transition);
+  }
+  .result-verdict.positive { color: var(--accent); }
+  .result-verdict.negative { color: var(--green); }
+  .result-verdict.pending { color: var(--amber); }
+  .result-detail { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+  .result-bottom {
+    border-top: 1px solid var(--border);
+    padding: 14px 20px;
+    display: none;
+  }
+  .result-bottom.show { display: block; }
+
+  .action-strip {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .action-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .action-pill svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+  .action-pill.urgent { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+  .action-pill.info { background: var(--blue-soft); border-color: var(--blue-border); color: var(--blue); }
+  .action-pill.ok { background: var(--green-soft); border-color: var(--green-border); color: var(--green); }
+
+  .result-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .stat-item { flex: 1; min-width: 100px; }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); margin-bottom: 3px; font-weight: 500; }
+  .stat-value { font-size: 17px; font-weight: 600; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--text-faint); }
+
+  /* ── Reset / Footer ── */
+  .footer-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn-reset {
+    flex: 1;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  .btn-reset:hover { background: var(--surface2); color: var(--text); }
+  .btn-reset svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn-print {
+    padding: 13px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--text);
+    color: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-print:hover { opacity: .85; }
+  .btn-print svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  /* ── Meta footer ── */
+  .meta-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .meta-ref { flex: 1; min-width: 200px; }
+  .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); font-weight: 500; margin-bottom: 6px; }
+  .meta-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .meta-text a { color: var(--blue); text-decoration: none; }
+  .meta-text a:hover { text-decoration: underline; }
+  .version-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* ── Progress dots ── */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .progress-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background var(--transition), transform var(--transition);
+  }
+  .progress-dot.done { background: var(--accent); transform: scale(1.2); }
+  .progress-label { font-size: 12px; color: var(--text-faint); margin-left: 4px; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 22px; }
+    .result-score { font-size: 36px; }
+    .item-options { grid-template-columns: 1fr; }
+    .item-options.three { grid-template-columns: 1fr; }
+    .header { flex-direction: column; }
+    .header-meta { text-align: left; }
+  }
+
+  @media print {
+    body { background: white; padding: 16px; }
+    .timer-btn, .btn-reset, .btn-print, .how-to-toggle, .how-to { display: none !important; }
+    .result-bottom { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="badge"><span class="badge-dot"></span>Escala prehospitalaria</div>
+      <h1>Cincinnati Prehospital<br>Stroke Scale</h1>
+      <p class="subtitle">Evaluación neurológica rápida para sospecha de ictus · 3 ítems · &lt;60 segundos</p>
+    </div>
+    <div class="header-meta">
+      <div>CPSS / Kothari 1999</div>
+      <div>Sensibilidad 82%</div>
+      <div>Especificidad 56%</div>
+      <div style="margin-top:6px"><span class="version-tag">v2.0</span></div>
+    </div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-bar">
+    <div class="timer-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="timer-content">
+      <div class="timer-label">Tiempo de evaluación</div>
+      <div class="timer-time" id="timerDisplay">00:00</div>
+    </div>
+    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">
+      <svg id="timerBtnIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span id="timerBtnText">Iniciar</span>
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-row">
+    <div class="progress-dot" id="dot-face"></div>
+    <div class="progress-dot" id="dot-arm"></div>
+    <div class="progress-dot" id="dot-speech"></div>
+    <div class="progress-label" id="progressLabel">0 de 3 ítems evaluados</div>
+  </div>
+
+  <!-- Items -->
+  <div class="items">
+
+    <!-- CARA -->
+    <div class="item-card" id="card-face">
+      <div class="item-header">
+        <div class="item-letter">F</div>
+        <div class="item-info">
+          <div class="item-name">Cara — Paresia facial</div>
+          <div class="item-desc">Pedir al paciente que sonría o muestre los dientes</div>
+        </div>
+        <div class="item-status" id="status-face">Sin evaluar</div>
+      </div>
+      <div class="item-options">
+        <button class="option-btn" id="face-0" onclick="selectOption('face', 0)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Normal
+          </div>
+          <div class="option-text">Movimiento facial simétrico</div>
+          <div class="option-hint">Ambos lados se mueven igual</div>
+        </button>
+        <button class="option-btn" id="face-1" onclick="selectOption('face', 1)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Anormal
+          </div>
+          <div class="option-text">Asimetría facial unilateral</div>
+          <div class="option-hint">Un lado no se mueve</div>
+        </button>
+      </div>
+      <button class="how-to-toggle" id="toggle-face" onclick="toggleHowTo('face')">
+        Cómo explorar
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="how-to" id="howto-face">
+        <div class="how-to-title">Técnica de evaluación</div>
+        <ol>
+          <li>Pida: <strong>"Muéstreme sus dientes"</strong> o <strong>"Sonría lo más amplio que pueda"</strong></li>
+          <li>Observe ambos lados de la cara simultáneamente</li>
+          <li><strong>Normal:</strong> ambos lados se elevan simétricamente</li>
+          <li><strong>Anormal:</strong> un lado no se mueve o lo hace significativamente menos</li>
+          <li>Si el paciente no coopera: frotar el esternón y observar la mueca</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- BRAZO -->
+    <div class="item-card" id="card-arm">
+      <div class="item-header">
+        <div class="item-letter">A</div>
+        <div class="item-info">
+          <div class="item-name">Brazo — Deriva motora</div>
+          <div class="item-desc">Prueba de pronación con ojos cerrados</div>
+        </div>
+        <div class="item-status" id="status-arm">Sin evaluar</div>
+      </div>
+      <div class="item-options">
+        <button class="option-btn" id="arm-0" onclick="selectOption('arm', 0)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Normal
+          </div>
+          <div class="option-text">Mantiene posición bilateral</div>
+          <div class="option-hint">Ambos brazos ≥10 seg sin deriva</div>
+        </button>
+        <button class="option-btn" id="arm-1" onclick="selectOption('arm', 1)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Anormal
+          </div>
+          <div class="option-text">Deriva, cae o pronación</div>
+          <div class="option-hint">Un brazo cae o rota en ≤10 seg</div>
+        </button>
+      </div>
+      <button class="how-to-toggle" id="toggle-arm" onclick="toggleHowTo('arm')">
+        Cómo explorar
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="how-to" id="howto-arm">
+        <div class="how-to-title">Técnica de evaluación</div>
+        <ol>
+          <li>Paciente sentado o en decúbito: <strong>extender ambos brazos a 90°</strong> (sentado) o 45° (acostado), palmas hacia arriba</li>
+          <li>Pedir que <strong>cierre los ojos</strong> y mantenga la posición</li>
+          <li>Sostener brevemente y luego soltar</li>
+          <li>Contar hasta 10 segundos</li>
+          <li><strong>Normal:</strong> ambos brazos se mantienen sin deriva ni rotación</li>
+          <li><strong>Anormal:</strong> un brazo cae, prona (rota hacia adentro) o no puede elevarse</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- HABLA -->
+    <div class="item-card" id="card-speech">
+      <div class="item-header">
+        <div class="item-letter">S</div>
+        <div class="item-info">
+          <div class="item-name">Habla — Alteración del lenguaje</div>
+          <div class="item-desc">Repetición de frase + evaluación de comprensión</div>
+        </div>
+        <div class="item-status" id="status-speech">Sin evaluar</div>
+      </div>
+      <div class="item-options three">
+        <button class="option-btn" id="speech-0" onclick="selectOption('speech', 0)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Normal
+          </div>
+          <div class="option-text">Habla clara y correcta</div>
+          <div class="option-hint">Repite sin errores</div>
+        </button>
+        <button class="option-btn" id="speech-1" onclick="selectOption('speech', 1)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Disartria
+          </div>
+          <div class="option-text">Habla arrastrada o borrosa</div>
+          <div class="option-hint">Palabras correctas, mal articuladas</div>
+        </button>
+        <button class="option-btn" id="speech-2" onclick="selectOption('speech', 2)">
+          <div class="option-label">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Afasia
+          </div>
+          <div class="option-text">Palabras incorrectas o sin habla</div>
+          <div class="option-hint">No comprende o no repite</div>
+        </button>
+      </div>
+      <button class="how-to-toggle" id="toggle-speech" onclick="toggleHowTo('speech')">
+        Cómo explorar
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="how-to" id="howto-speech">
+        <div class="how-to-title">Técnica de evaluación</div>
+        <ol>
+          <li>Pedir que repita: <strong>"No me cae el sol de las pampas"</strong></li>
+          <li>Si no puede repetir, intentar: <strong>"El cielo es azul"</strong></li>
+          <li>También evaluar: comprensión de órdenes simples (levantar mano)</li>
+          <li><strong>Normal:</strong> repite correctamente, palabras claras y fluidas</li>
+          <li><strong>Disartria:</strong> palabras correctas pero arrastradas, borrosas, nasales</li>
+          <li><strong>Afasia:</strong> palabras equivocadas, jergafasia, mutismo o no comprende</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Resultado -->
+  <div class="result-card" id="resultCard">
+    <div class="result-top">
+      <div class="result-score-wrap">
+        <div class="result-score" id="resultScore">—</div>
+        <div class="result-score-label">/ 3 ítems</div>
+      </div>
+      <div class="result-divider"></div>
+      <div class="result-info">
+        <div class="result-verdict" id="resultVerdict">Evaluación pendiente</div>
+        <div class="result-detail" id="resultDetail">Complete los 3 ítems para obtener el resultado</div>
+      </div>
+    </div>
+    <div class="result-bottom" id="resultBottom">
+      <div class="action-strip" id="actionStrip"></div>
+      <div class="result-stats">
+        <div class="stat-item">
+          <div class="stat-label">Sensibilidad</div>
+          <div class="stat-value">82%</div>
+          <div class="stat-sub">para ictus general</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Especificidad</div>
+          <div class="stat-value">56%</div>
+          <div class="stat-sub">Kothari et al. 1999</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">VPP</div>
+          <div class="stat-value">72%</div>
+          <div class="stat-sub">valor predictivo +</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Tiempo</div>
+          <div class="stat-value">&lt;60 s</div>
+          <div class="stat-sub">aplicación en campo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer buttons -->
+  <div class="footer-actions">
+    <button class="btn-reset" onclick="resetAll()">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.75"/></svg>
+      Nueva evaluación
+    </button>
+    <button class="btn-print" onclick="window.print()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+  </div>
+
+  <!-- Meta footer -->
+  <div class="meta-footer">
+    <div class="meta-ref">
+      <div class="meta-label">Referencia</div>
+      <div class="meta-text">Kothari RU, et al. <em>Cincinnati Prehospital Stroke Scale: reproducibility and validity.</em> Ann Emerg Med. 1999;33(4):373–378.</div>
+    </div>
+    <div class="meta-ref">
+      <div class="meta-label">Validación</div>
+      <div class="meta-text">Sens. 82%, Espec. 56% para ictus isquémico. Actualizado según <a href="https://www.ahajournals.org/doi/10.1161/STR.0000000000000513" target="_blank">Guía AHA/ASA 2026</a>.</div>
+    </div>
+    <div class="meta-ref">
+      <div class="meta-label">Notas</div>
+      <div class="meta-text">Herramienta de apoyo clínico. No reemplaza juicio médico. CPSS positivo (≥1 ítem anormal) → activar código ictus.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const state = { face: null, arm: null, speech: null };
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let timerRunning = false;
+
+  function selectOption(item, value) {
+    state[item] = value;
+    const labels = { face: 'Cara', arm: 'Brazo', speech: 'Habla' };
+    const normalLabel = 'Normal';
+    const abnormalLabels = {
+      face: ['Normal', 'Anormal'],
+      arm: ['Normal', 'Anormal'],
+      speech: ['Normal', 'Disartria', 'Afasia']
+    };
+
+    document.querySelectorAll(`[id^="${item}-"]`).forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`${item}-${value}`).classList.add('active');
+
+    const isAbnormal = value > 0;
+    const card = document.getElementById(`card-${item}`);
+    const statusEl = document.getElementById(`status-${item}`);
+    const dot = document.getElementById(`dot-${item}`);
+
+    card.classList.toggle('selected', isAbnormal);
+    statusEl.textContent = abnormalLabels[item][value];
+    dot.classList.add('done');
+
+    updateProgress();
+    updateResult();
+  }
+
+  function updateProgress() {
+    const done = Object.values(state).filter(v => v !== null).length;
+    document.getElementById('progressLabel').textContent = `${done} de 3 ítems evaluados`;
+  }
+
+  function updateResult() {
+    const done = Object.values(state).filter(v => v !== null).length;
+    const abnormal = Object.values(state).filter(v => v > 0).length;
+    const scoreEl = document.getElementById('resultScore');
+    const verdictEl = document.getElementById('resultVerdict');
+    const detailEl = document.getElementById('resultDetail');
+    const cardEl = document.getElementById('resultCard');
+    const bottomEl = document.getElementById('resultBottom');
+    const stripEl = document.getElementById('actionStrip');
+
+    if (done < 3) {
+      scoreEl.textContent = done > 0 ? `${done}/3` : '—';
+      scoreEl.className = 'result-score pending';
+      verdictEl.textContent = done === 0 ? 'Evaluación pendiente' : `${3 - done} ítem${3 - done > 1 ? 's' : ''} pendiente${3 - done > 1 ? 's' : ''}`;
+      verdictEl.className = 'result-verdict pending';
+      detailEl.textContent = 'Complete los 3 ítems para obtener el resultado';
+      cardEl.className = 'result-card pending';
+      bottomEl.classList.remove('show');
+      return;
+    }
+
+    bottomEl.classList.add('show');
+
+    if (abnormal === 0) {
+      scoreEl.textContent = '0';
+      scoreEl.className = 'result-score negative';
+      verdictEl.textContent = 'CPSS Negativo';
+      verdictEl.className = 'result-verdict negative';
+      detailEl.textContent = 'Los 3 ítems son normales. Baja probabilidad de ictus agudo por escala CPSS.';
+      cardEl.className = 'result-card negative';
+      stripEl.innerHTML = `
+        <span class="action-pill ok"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Sin hallazgos CPSS</span>
+        <span class="action-pill info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Evaluar diagnósticos alternativos</span>
+        <span class="action-pill info"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Monitorizar síntomas</span>`;
+    } else {
+      const label = abnormal === 1 ? '1 ítem anormal' : `${abnormal} ítems anormales`;
+      scoreEl.textContent = abnormal.toString();
+      scoreEl.className = 'result-score positive';
+      verdictEl.textContent = 'CPSS Positivo — Sospecha de Ictus';
+      verdictEl.className = 'result-verdict positive';
+      detailEl.textContent = `${label}. Alta sospecha de ictus agudo. Activar protocolo de código ictus de inmediato.`;
+      cardEl.className = 'result-card positive';
+      stripEl.innerHTML = `
+        <span class="action-pill urgent"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Activar código ictus</span>
+        <span class="action-pill urgent"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registrar hora de inicio</span>
+        <span class="action-pill info"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Trasladar a centro EVT</span>
+        <span class="action-pill info"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Notificación previa al hospital</span>`;
+    }
+
+    if (timerRunning) toggleTimer();
+  }
+
+  function toggleHowTo(item) {
+    const el = document.getElementById(`howto-${item}`);
+    const btn = document.getElementById(`toggle-${item}`);
+    const isOpen = el.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+  }
+
+  function toggleTimer() {
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      document.getElementById('timerBtnText').textContent = 'Reanudar';
+      document.getElementById('timerBtnIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    } else {
+      timerRunning = true;
+      document.getElementById('timerBtnText').textContent = 'Pausar';
+      document.getElementById('timerBtnIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const s = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      }, 1000);
+    }
+  }
+
+  function resetAll() {
+    state.face = null; state.arm = null; state.speech = null;
+
+    ['face', 'arm', 'speech'].forEach(item => {
+      document.querySelectorAll(`[id^="${item}-"]`).forEach(b => b.classList.remove('active'));
+      document.getElementById(`card-${item}`).classList.remove('selected');
+      document.getElementById(`status-${item}`).textContent = 'Sin evaluar';
+      document.getElementById(`dot-${item}`).classList.remove('done');
+      const howto = document.getElementById(`howto-${item}`);
+      const toggle = document.getElementById(`toggle-${item}`);
+      if (howto) { howto.classList.remove('open'); toggle.classList.remove('open'); }
+    });
+
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerSeconds = 0;
+    document.getElementById('timerDisplay').textContent = '00:00';
+    document.getElementById('timerBtnText').textContent = 'Iniciar';
+    document.getElementById('timerBtnIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    document.getElementById('progressLabel').textContent = '0 de 3 ítems evaluados';
+
+    const scoreEl = document.getElementById('resultScore');
+    scoreEl.textContent = '—';
+    scoreEl.className = 'result-score';
+    document.getElementById('resultVerdict').textContent = 'Evaluación pendiente';
+    document.getElementById('resultVerdict').className = 'result-verdict';
+    document.getElementById('resultDetail').textContent = 'Complete los 3 ítems para obtener el resultado';
+    document.getElementById('resultCard').className = 'result-card';
+    document.getElementById('resultBottom').classList.remove('show');
+  }
+</script>
+
+</body>
+</html>
